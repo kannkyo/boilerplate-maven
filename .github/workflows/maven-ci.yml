@@ -21,6 +21,11 @@ jobs:
         java-version: ${{ matrix.java-version }}
         distribution: 'adopt'
         cache: maven
+    - name: run check style
+      uses: nikitasavinov/checkstyle-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        reporter: 'github-pr-check'
     - name: build
       run: mvn -B package --file pom.xml
     - name: publish test results
