@@ -1,0 +1,25 @@
+name: maven ci
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [11]
+    steps:
+    - uses: actions/checkout@v2
+    - name: set up jdk
+      uses: actions/setup-java@v2
+      with:
+        java-version: ${{ matrix.java-version }}
+        distribution: 'adopt'
+        cache: maven
+    - name: build
+      run: mvn -B package --file pom.xml
