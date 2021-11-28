@@ -22,11 +22,7 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
           distribution: 'adopt'
-          server-id: github
-          settings-path: ${{ github.workspace }}
-      - name: build
-        run: mvn -B package --file pom.xml
       - name: deploy
-        run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
+        run: mvn --batch-mode deploy
         env:
           GITHUB_TOKEN: ${{ github.token }}
