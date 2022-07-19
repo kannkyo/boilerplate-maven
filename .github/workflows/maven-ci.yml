@@ -1,41 +1,83 @@
-name: maven ci
+name: Maven CI
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 15 * * 0"
+
+permissions: read-all
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    permissions: # for EnricoMi/publish-unit-test-result-action
+      checks: write
+      pull-requests: write # for comment_mode
+      contents: read # only for private repository
+      issues: read # only for private repository
     strategy:
       matrix:
         java-version: [11]
+        os: [ubuntu-latest]
     steps:
-    - uses: actions/checkout@v2
-    - name: set up jdk
-      uses: actions/setup-java@v2
-      with:
-        java-version: ${{ matrix.java-version }}
-        distribution: 'adopt'
-        cache: maven
-    - name: run check style
-      uses: nikitasavinov/checkstyle-action@0.4.0
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        reporter: 'github-pr-check'
-    - name: build
-      run: mvn -B package --file pom.xml
-    - name: publish test results
-      uses: EnricoMi/publish-unit-test-result-action@v1
-      if: always()
-      with:
-        check_name: junit test results
-        files: target/surefire-reports/**/*.xml
-    - run: mkdir staging && cp target/*.jar staging
-    - uses: actions/upload-artifact@v2
-      with:
-        name: Package
-        path: staging
+      - name: Checkout repository
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+
+      - name: Setup java environment
+        uses: actions/setup-java@v2
+        with:
+          java-version: ${{ matrix.java-version }}
+          distribution: "adopt"
+          cache: maven
+
+      - name: run check style
+        uses: nikitasavinov/checkstyle-action@0.4.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: "github-pr-check"
+
+      - name: build
+        run: mvn -B package --file pom.xml
+
+      - name: publish test results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          check_name: junit test results
+          files: target/surefire-reports/**/*.xml
+
+      - run: mkdir staging && cp target/*.jar staging
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Package
+          path: staging
+
+  sast-codeql:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ["java"]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@3f62b754e23e0dd60f91b744033e1dc1654c0ec6
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Build automatically
+        uses: github/codeql-action/autobuild@3f62b754e23e0dd60f91b744033e1dc1654c0ec6
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@3f62b754e23e0dd60f91b744033e1dc1654c0ec6
