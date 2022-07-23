@@ -1,28 +1,33 @@
-name: maven publish
+name: Maven Publish
 
 on:
+  workflow_dispatch: # for debug
   push:
+    branches: [main]
     tags:
       - v*.*.*
 
+permissions: read-all
+
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
+    if: ${{ github.ref_name != 'main' }}
     permissions:
-      contents: read
+      contents: write
       packages: write
-    strategy:
-      matrix:
-        java-version: [11]
     steps:
-      - name: checkout
-        uses: actions/checkout@v2
-      - name: setup java
-        uses: actions/setup-java@v3
+      - name: Checkout repository
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+
+      - name: Setup java environment
+        uses: actions/setup-java@2c7a4878f5d120bd643426d54ae1209b29cc01a3
         with:
-          java-version: ${{ matrix.java-version }}
-          distribution: 'adopt'
-      - name: deploy
+          java-version: 11
+          distribution: "adopt"
+          cache: maven
+
+      - name: Upload package to registry
         run: mvn --batch-mode deploy
         env:
           GITHUB_TOKEN: ${{ github.token }}

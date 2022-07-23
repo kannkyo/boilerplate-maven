@@ -5,7 +5,6 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
   schedule:
     - cron: "0 15 * * 0"
 
@@ -28,31 +27,33 @@ jobs:
         uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
 
       - name: Setup java environment
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@2c7a4878f5d120bd643426d54ae1209b29cc01a3
         with:
           java-version: ${{ matrix.java-version }}
           distribution: "adopt"
           cache: maven
 
-      - name: run check style
-        uses: nikitasavinov/checkstyle-action@0.6.0
+      - name: Lint java code by checkstyle
+        uses: nikitasavinov/checkstyle-action@79490c0fdcc3ab5dd2b50a0e82a5bfc4fe63f0a9
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           reporter: "github-pr-check"
 
-      - name: build
+      - name: Build by maven
         run: mvn -B package --file pom.xml
 
-      - name: publish test results
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
+      - name: Publish junit report to PR
+        uses: EnricoMi/publish-unit-test-result-action@00dc83be2fe226471b499944d6f220a178421ab7
+        if: ${{ env.os == 'ubuntu-latest' }} # linux is only supported
         with:
           check_name: junit test results
           files: target/surefire-reports/**/*.xml
 
-      - run: mkdir staging && cp target/*.jar staging
+      - name: Move target files
+        run: mkdir staging && cp target/*.jar staging
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload junit report to artifact
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
         with:
           name: Package
           path: staging
