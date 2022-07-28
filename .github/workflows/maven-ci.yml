@@ -43,7 +43,7 @@ jobs:
         run: mvn -B package --file pom.xml
 
       - name: Publish junit report to PR
-        uses: EnricoMi/publish-unit-test-result-action@577d99537e5d139a75fa354f98417002ec2785cc
+        uses: EnricoMi/publish-unit-test-result-action@2a60c5d47eb29cd5cc922f51bbea18e148f56203
         if: ${{ env.os == 'ubuntu-latest' }} # linux is only supported
         with:
           check_name: junit test results
