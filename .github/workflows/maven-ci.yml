@@ -24,7 +24,7 @@ jobs:
         os: [ubuntu-latest]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
 
       - name: Setup java environment
         uses: actions/setup-java@1df8dbefe2a8cbc99770194893dd902763bee34b
@@ -70,7 +70,7 @@ jobs:
         language: ["java"]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@959cbb7472c4d4ad70cdfe6f4976053fe48ab394
